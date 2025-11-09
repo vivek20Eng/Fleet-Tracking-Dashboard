@@ -1,0 +1,26 @@
+.App {
+  text-align: center;
+}
+
+.leaflet-container {
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.MuiAccordion-root {
+  margin-bottom: 16px;
+}
+
+.MuiLinearProgress-root {
+  border-radius: 10px;
+  height: 8px;
+}
+
+.custom-div-icon {
+  background: transparent;
+  border: none;
+}
+.leaflet-tooltip {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
