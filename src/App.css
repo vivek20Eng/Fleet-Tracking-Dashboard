@@ -1,5 +1,5 @@
 .App {
-  text-align: center;
+  /* Removed text-align: center; */
 }
 
 .leaflet-container {
@@ -20,7 +20,52 @@
   background: transparent;
   border: none;
 }
+
 .leaflet-tooltip {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+
+.MuiContainer-root {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.map-description {
+  margin-left: 0 !important;
+}
+
+/* Prevent overlapping in popups and tooltips */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 8px 12px !important;
+  line-height: 1.4;
+}
+
+*/
+.MuiListItem-root {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.MuiAccordionSummary-root {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  min-height: 48px !important;
+}
+
+/* Fix potential z-index overlap on map elements */
+.leaflet-overlay-pane {
+  z-index: 400 !important;
+}
+
+.leaflet-popup-pane {
+  z-index: 700 !important;
 }

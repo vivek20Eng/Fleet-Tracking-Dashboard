@@ -276,7 +276,7 @@ function App() {
         <AppBar position="fixed" elevation={0} sx={{ backgroundColor: 'background.paper', color: 'text.primary', borderBottom: 1, borderColor: 'divider' }}>
           <Toolbar sx={{ justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', textAlign: 'center', flexGrow: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', textAlign: 'left', flexGrow: 1 }}>
                 🚀 Fleet Tracking Dashboard
               </Typography>
             </Box>
@@ -318,7 +318,7 @@ function App() {
           {/* Enhanced Fleet Overview with Icons */}
           <Zoom in={true}>
             <Paper elevation={4} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
-              <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', mb: 3, textAlign: 'left' }}>
                 <SpeedIcon sx={{ mr: 1, color: 'primary.main' }} />
                 Fleet Overview
               </Typography>
@@ -380,11 +380,11 @@ function App() {
           {/* Enhanced Map with Uber-like Navigation */}
           <Paper elevation={4} sx={{ mb: 4, borderRadius: 3, overflow: 'hidden' }}>
             <Box sx={{ p: 3, backgroundColor: 'background.paper', borderBottom: 1, borderColor: 'divider', position: 'relative' }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', mb: 1, textAlign: 'left' }}>
                 <DirectionsIcon sx={{ mr: 1, color: 'primary.main' }} />
                 Live Fleet Map & Navigation
               </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
+              <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'left' }}>
                 All routes shown. Click a trip below to focus and highlight.
               </Typography>
               <Fab
@@ -461,7 +461,7 @@ function App() {
           </Paper>
 
           {/* Enhanced Individual Trips with Navigation Focus */}
-          <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', textAlign: 'left' }}>
             <LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />
             Individual Trip Details
           </Typography>
@@ -486,7 +486,7 @@ function App() {
                           <span style={{ fontSize: 24 }}>{trip.icon}</span>
                         </Box>
                         <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="h6" gutterBottom>{trip.name}</Typography>
+                          <Typography variant="h6" gutterBottom sx={{ textAlign: 'left' }}>{trip.name}</Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             {getStatusIcon(state.status)}
                             <Chip 
@@ -533,7 +533,7 @@ function App() {
                         onChange={(event, isExpanded) => setExpandedTrip(isExpanded ? state.tripId : null)}
                         sx={{ boxShadow: 'none', '&:before': { display: 'none' } }}
                       >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ textAlign: 'left' }}>
                           <Typography variant="subtitle2">Details & Recent Events</Typography>
                         </AccordionSummary>
                         <AccordionDetails sx={{ p: 0 }}>
