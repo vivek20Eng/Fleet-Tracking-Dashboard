@@ -35,9 +35,6 @@ const TRIPS = [
 ];
 
 // Custom marker icons
-
-
-// Custom marker icons
 const createCustomMarker = (color, icon) => L.divIcon({
   html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${icon}</div>`,
   className: 'custom-div-icon',
@@ -57,10 +54,7 @@ function MapEvents({ positions, paths }) {
         map.fitBounds(positions, { padding: [50, 50] });
       }
     },
-    zoomend: () => {
-      // Auto-adjust zoom for better Uber-like view
-      if (map.getZoom() > 12) map.setZoom(10);
-    },
+    // Removed zoomend handler to prevent auto-zoom interference during user interaction
   });
   return null;
 }
@@ -73,6 +67,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [dataError, setDataError] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState(null);
+  const [expandedTrip, setExpandedTrip] = useState(null);
   const mapRef = useRef();
   const theme = useTheme();
   const mode = darkMode ? 'dark' : 'light';
@@ -169,6 +164,7 @@ function App() {
     if (!events || !Array.isArray(events) || events.length === 0) {
       console.warn(`Invalid data for trip ${tripId}`);
       return { 
+        tripId,
         status: 'error', 
         progress: 0, 
         position: null, 
@@ -184,6 +180,7 @@ function App() {
     const filteredEvents = events.filter(e => e && e.timestamp && new Date(e.timestamp) <= simTime);
     if (filteredEvents.length === 0) {
       return { 
+        tripId,
         status: 'idle', 
         progress: 0, 
         position: null, 
@@ -245,9 +242,11 @@ function App() {
   const allPaths = tripStates.filter(s => s.path.length > 1);
 
   const handleTripSelect = (tripId) => {
-    setSelectedTrip(tripId === selectedTrip ? null : tripId);
-    if (mapRef.current) {
-      const state = tripStates.find(s => s.tripId === tripId);
+    const newSelected = tripId === selectedTrip ? null : tripId;
+    setSelectedTrip(newSelected);
+    setExpandedTrip(newSelected);
+    if (mapRef.current && newSelected) {
+      const state = tripStates.find(s => s.tripId === newSelected);
       if (state && state.path.length > 0) {
         mapRef.current.fitBounds(state.path, { padding: [20, 20] });
       }
@@ -257,7 +256,7 @@ function App() {
   if (dataError) {
     return (
       <ThemeProvider theme={darkTheme}>
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
+        <Container maxWidth="xl" sx={{ mt: 8 }}>
           <Alert severity="error" action={
             <IconButton color="inherit" size="small" onClick={() => window.location.reload()}>
               <RefreshIcon />
@@ -275,43 +274,47 @@ function App() {
     <ThemeProvider theme={darkTheme}>
       <div className="App">
         <AppBar position="fixed" elevation={0} sx={{ backgroundColor: 'background.paper', color: 'text.primary', borderBottom: 1, borderColor: 'divider' }}>
-          <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-              🚀 Fleet Tracking Dashboard
-            </Typography>
-            <Tooltip title={`Current Simulation Time: ${moment(currentTime).format('YYYY-MM-DD HH:mm:ss UTC')}`}>
-              <Typography variant="body1" sx={{ mr: 2, fontSize: '0.9rem' }}>
-                {moment(currentTime).format('MMM DD, HH:mm')}
+          <Toolbar sx={{ justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', textAlign: 'center', flexGrow: 1 }}>
+                🚀 Fleet Tracking Dashboard
               </Typography>
-            </Tooltip>
-            <Tooltip title={isPlaying ? 'Pause Simulation' : 'Start Simulation'}>
-              <IconButton color="primary" onClick={() => setIsPlaying(!isPlaying)} size="large">
-                {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Simulation Speed">
-              <Box sx={{ mr: 2 }}>
-                <Typography variant="body2" sx={{ mr: 1 }}>Speed:</Typography>
-                <Slider
-                  value={speeds.indexOf(simulationSpeed)}
-                  onChange={(_, v) => setSimulationSpeed(speeds[v])}
-                  marks={speeds.map((s, i) => ({ value: i, label: `${s}x` }))}
-                  min={0}
-                  max={speeds.length - 1}
-                  size="small"
-                  sx={{ width: 120 }}
-                />
-              </Box>
-            </Tooltip>
-            <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'}>
-              <IconButton color="inherit" onClick={() => setDarkMode(!darkMode)}>
-                {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-              </IconButton>
-            </Tooltip>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
+              <Tooltip title={`Current Simulation Time: ${moment(currentTime).format('YYYY-MM-DD HH:mm:ss UTC')}`}>
+                <Typography variant="body1" sx={{ mr: 2, fontSize: '0.9rem' }}>
+                  {moment(currentTime).format('MMM DD, HH:mm')}
+                </Typography>
+              </Tooltip>
+              <Tooltip title={isPlaying ? 'Pause Simulation' : 'Start Simulation'}>
+                <IconButton color="primary" onClick={() => setIsPlaying(!isPlaying)} size="large">
+                  {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Simulation Speed">
+                <Box sx={{ mr: 2 }}>
+                  <Typography variant="body2" sx={{ mr: 1 }}>Speed:</Typography>
+                  <Slider
+                    value={speeds.indexOf(simulationSpeed)}
+                    onChange={(_, v) => setSimulationSpeed(speeds[v])}
+                    marks={speeds.map((s, i) => ({ value: i, label: `${s}x` }))}
+                    min={0}
+                    max={speeds.length - 1}
+                    size="small"
+                    sx={{ width: 120 }}
+                  />
+                </Box>
+              </Tooltip>
+              <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'}>
+                <IconButton color="inherit" onClick={() => setDarkMode(!darkMode)}>
+                  {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Toolbar>
         </AppBar>
 
-        <Container maxWidth="xl" sx={{ mt: 3, pb: 4 }}>
+        <Container maxWidth="xl" sx={{ mt: 8, pb: 4 }}>
           {/* Enhanced Fleet Overview with Icons */}
           <Zoom in={true}>
             <Paper elevation={4} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
@@ -325,7 +328,7 @@ function App() {
                 </Alert>
               )}
               <Grid container spacing={3}>
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid item xs={12} sm={6} md={2.4} key="active">
                   <Card sx={{ height: '100%' }}>
                     <CardContent sx={{ textAlign: 'center', p: 2 }}>
                       <DirectionsIcon sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
@@ -334,7 +337,7 @@ function App() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid item xs={12} sm={6} md={2.4} key="completed">
                   <Card sx={{ height: '100%' }}>
                     <CardContent sx={{ textAlign: 'center', p: 2 }}>
                       <CheckCircleIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
@@ -343,7 +346,7 @@ function App() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid item xs={12} sm={6} md={2.4} key="cancelled">
                   <Card sx={{ height: '100%' }}>
                     <CardContent sx={{ textAlign: 'center', p: 2 }}>
                       <CancelIcon sx={{ fontSize: 40, color: 'error.main', mb: 1 }} />
@@ -352,7 +355,7 @@ function App() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid item xs={12} sm={6} md={2.4} key="distance">
                   <Card sx={{ height: '100%' }}>
                     <CardContent sx={{ textAlign: 'center', p: 2 }}>
                       <LocationOnIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
@@ -361,7 +364,7 @@ function App() {
                     </CardContent>
                   </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={2.4}>
+                <Grid item xs={12} sm={6} md={2.4} key="speed">
                   <Card sx={{ height: '100%' }}>
                     <CardContent sx={{ textAlign: 'center', p: 2 }}>
                       <SpeedIcon sx={{ fontSize: 40, color: 'secondary.main', mb: 1 }} />
@@ -376,13 +379,13 @@ function App() {
 
           {/* Enhanced Map with Uber-like Navigation */}
           <Paper elevation={4} sx={{ mb: 4, borderRadius: 3, overflow: 'hidden' }}>
-            <Box sx={{ p: 2, backgroundColor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
-              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ p: 3, backgroundColor: 'background.paper', borderBottom: 1, borderColor: 'divider', position: 'relative' }}>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <DirectionsIcon sx={{ mr: 1, color: 'primary.main' }} />
                 Live Fleet Map & Navigation
               </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Routes shown with direction arrows (Uber-style). Click a trip below to focus.
+              <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
+                All routes shown. Click a trip below to focus and highlight.
               </Typography>
               <Fab
                 size="small"
@@ -403,7 +406,7 @@ function App() {
               center={[39.8283, -98.5795]}
               zoom={4}
               style={{ height: '500px', width: '100%', borderRadius: '0 0 12px 12px' }}
-              scrollWheelZoom={true}
+              scrollWheelZoom={false}
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -426,7 +429,7 @@ function App() {
                         {state.alerts?.length > 0 && (
                           <Box sx={{ mt: 1 }}>
                             {state.alerts.map((alert, i) => (
-                              <Chip key={i} label={alert} color="error" size="small" sx={{ mr: 1, mb: 1 }} />
+                              <Chip key={`alert-${i}-${alert}`} label={alert} color="error" size="small" sx={{ mr: 1, mb: 1 }} />
                             ))}
                           </Box>
                         )}
@@ -449,9 +452,9 @@ function App() {
                   key={`path-${state.tripId}`}
                   positions={state.path}
                   color={state.color}
-                  weight={4}
-                  opacity={0.8}
-                  dashArray={selectedTrip === state.tripId ? '' : '5, 5'} // Solid for selected, dashed otherwise
+                  weight={selectedTrip === state.tripId ? 6 : 4}
+                  opacity={1}
+                  dashArray={''} // All paths solid for better visibility during travel
                 />
               ))}
             </MapContainer>
@@ -463,11 +466,11 @@ function App() {
             Individual Trip Details
           </Typography>
           <Grid container spacing={3}>
-            {tripStates.map((state, i) => {
-              const trip = TRIPS[i] || { name: 'Unknown', color: '#000', icon: '❓' };
+            {tripStates.map((state) => {
+              const trip = TRIPS.find(t => t.id === state.tripId) || { name: 'Unknown', color: '#000', icon: '❓' };
               const isSelected = selectedTrip === state.tripId;
               return (
-                <Grid item xs={12} md={6} lg={4} key={state.tripId}>
+                <Grid item xs={12} md={6} lg={4} key={`trip-grid-${state.tripId}`}>
                   <Card
                     elevation={isSelected ? 8 : 2}
                     sx={{ 
@@ -504,7 +507,7 @@ function App() {
                       {state.alerts?.length > 0 && (
                         <Box sx={{ mb: 2 }}>
                           {state.alerts.map((alert, j) => (
-                            <Chip key={j} label={alert} color="warning" size="small" sx={{ mr: 1, mb: 1 }} />
+                            <Chip key={`alert-${j}-${alert}`} label={alert} color="warning" size="small" sx={{ mr: 1, mb: 1 }} />
                           ))}
                         </Box>
                       )}
@@ -526,7 +529,8 @@ function App() {
                         </Typography>
                       </Box>
                       <Accordion 
-                        defaultExpanded={isSelected}
+                        expanded={expandedTrip === state.tripId}
+                        onChange={(event, isExpanded) => setExpandedTrip(isExpanded ? state.tripId : null)}
                         sx={{ boxShadow: 'none', '&:before': { display: 'none' } }}
                       >
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -534,7 +538,7 @@ function App() {
                         </AccordionSummary>
                         <AccordionDetails sx={{ p: 0 }}>
                           <List dense>
-                            <ListItem>
+                            <ListItem key="current-position">
                               <ListItemIcon>
                                 <LocationOnIcon fontSize="small" />
                               </ListItemIcon>
@@ -545,7 +549,7 @@ function App() {
                             </ListItem>
                             {state.events?.length > 0 ? (
                               state.events.map((e, j) => (
-                                <ListItem key={j} divider={j < state.events.length - 1}>
+                                <ListItem key={`event-${j}-${e.timestamp || j}`} divider={j < state.events.length - 1}>
                                   <ListItemIcon>
                                     <DirectionsIcon fontSize="small" />
                                   </ListItemIcon>
@@ -556,7 +560,7 @@ function App() {
                                 </ListItem>
                               ))
                             ) : (
-                              <ListItem>
+                              <ListItem key="no-events">
                                 <ListItemText primary="No events yet" />
                               </ListItem>
                             )}
